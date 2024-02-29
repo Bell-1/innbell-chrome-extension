@@ -3,12 +3,30 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
 		<link rel="stylesheet" href="button.css" />
+		<style rel="stylesheet">
+			.innbell-extension__menu-list {
+				width: auto;
+				min-width: 200px;
+			}
+
+			.innbell-extension__menu-list li {
+				padding: 4px;
+				cursor: pointer;
+			}
+
+			.innbell-extension__menu-list li:hover {
+				background: #eee;
+			}
+		</style>
 	</head>
 	<body>
-		<ul class="menu-list">
+		<ul class="innbell-extension__menu-list">
 			<li id="unlockCopy" class="">复制解锁</li>
-			<li id="NationalMemorialDay" class="">公祭日</li>
-			<li id="downloadImage">1688图片资源下载</li>
+			<li id="downloadImage">图片资源下载</li>
+			<li id="download1688Image">1688图片资源下载</li>
+			<li id="ChangeTaobaoSearchWordCondition">使用特定查词条件</li>
+			<li id="saveTaobaoSearchWord">查词数据保存</li>
+			<li id="copyDiantoushi">复制店透视账号13868792161</li>
 		</ul>
 		<script src="popup.js"></script>
 	</body>
