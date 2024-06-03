@@ -34,10 +34,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 	// 下载图片
 	function downloadImages(){
-		const createImg = (url, name = Math.random() * 1000000 >> 1) => {
+		let imageName = 1
+		const createImg = (url, name) => {
 			const img = document.createElement("img");
 			img.src = url;
-			img.dataset.name = name;
+			img.dataset.name = name || imageName++;
 			return img
 		}
 	
@@ -47,6 +48,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 			const extension = url.replace(/\?.*$/, '').split('.').pop();
 			a.download = `${name || new Date().getTime()}.${extension}`;
 			return a;
+		}
+		// sleep
+		function sleep(ms = 100) {
+			return new Promise(resolve => setTimeout(resolve, ms));
 		}
 	
 		function downloadImage(img) {
@@ -67,10 +72,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 				e.preventDefault();
 			})
 		}
-		
+
 		const images = Array.from(document.querySelectorAll('img')).map(item => createImg(item.src));
 
-		console.log(images)
+		async function downloadAllImages(imgs) {
+			for(const img of imgs.flat()){
+				await downloadImage(img)
+				console.log('sleep1')
+				await sleep(300)
+			}
+		}
 
 		function appendImageDialog() {
 			let imageListEl = document.getElementById('imageList')
@@ -88,9 +99,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 			header.appendChild(title)
 
 			title.addEventListener('click', () => {
-				images.flat().forEach( async image => {
-					await downloadImage(image)
-				})
+				// 下载全部
+				downloadAllImages(images)
 			})
 
 			const closeIcon = document.createElement('span')
@@ -235,7 +245,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 		const getBannerImages = () => {
 			const banner = document.querySelector('.gallery-fix-wrapper .detail-gallery-turn-outter-wrapper');
 			const images = banner ? Array.from(banner.querySelectorAll('img.detail-gallery-img')) : [];
-			return images.map(item => createImg(item.src))
+			// 排除视频预览图
+			const hasVideo = banner ? banner.querySelector('.video-icon') : null;
+			return images.map(item => createImg(item.src)).slice(hasVideo ? 1 : 0, hasVideo ? 6 : 5)
 		}
 
 		// 获取背景图片
@@ -269,9 +281,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 		}
 
+		// 详情图片
 		const getDetailImages = () => {
 			const detail = document.querySelector('.detail-desc-module');
-			return Array.from(detail.querySelectorAll('img')).map(el => createImg(el.dataset?.lazyloadSrc || el.src)).filter(item => item)
+			return Array.from(detail.querySelectorAll('img'))
+				.filter(item => item && item.parentElement.tagName !== 'A') // 排除链接
+				.map(el => createImg(el.dataset?.lazyloadSrc || el.src)) // 兼容懒加载图片
+				.filter(item => item) // 过滤空值
 		}
 
 		const createA = (url, name) => {
@@ -301,6 +317,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 			})
 		}
 
+		// sleep
+		function sleep(ms = 100) {
+			return new Promise(resolve => setTimeout(resolve, ms));
+		}
+
 		
 		function appendImageDialog() {
 			const images = [getBannerImages(), getSkuImages(), getSkuPropImages(), getDetailImages()]
@@ -318,10 +339,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 			title.innerHTML = '图片列表-全部下载'
 			header.appendChild(title)
 
-			title.addEventListener('click', () => {
-				images.flat().forEach( async image => {
+			title.addEventListener('click', async () => {
+				let count = 1
+				for(const image of images.flat()){
 					await downloadImage(image)
-				})
+					console.log('sleep2')
+					if(count++ === 10){
+						await sleep(1000)
+						count = 1
+					}
+				}
 			})
 
 			const closeIcon = document.createElement('span')
@@ -389,6 +416,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 					display: flex;
 					justify-content: space-between;
 					align-items: center;
+					cursor: pointer;
+					
+				}
+
+				#imageList_1688 .header:hover {
+					color: ref;
 				}
 
 				#imageList_1688 .content {
@@ -457,4 +490,10 @@ document.getElementById("ChangeTaobaoSearchWordCondition").addEventListener("cli
   chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
     chrome.tabs.sendMessage(tabs[0].id, { action: "ChangeTaobaoSearchWordCondition" });
   });
+});
+
+document.getElementById("lunWenRepeatContent").addEventListener("click", function () {
+	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+		chrome.tabs.sendMessage(tabs[0].id, { action: "GetLunWenRepeatContent" });
+	});
 });
