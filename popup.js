@@ -30,10 +30,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 		})
 	})
 
-	
+
 
 	// 下载图片
-	function downloadImages(){
+	function downloadImages() {
 		let imageName = 1
 		const createImg = (url, name) => {
 			const img = document.createElement("img");
@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 			img.dataset.name = name || imageName++;
 			return img
 		}
-	
+
 		const createA = (url, name) => {
 			const a = document.createElement("a");
 			a.href = url;
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 		function sleep(ms = 100) {
 			return new Promise(resolve => setTimeout(resolve, ms));
 		}
-	
+
 		function downloadImage(img) {
 			const url = img.src
 			return fetch(url).then(res => res.blob()).then(blob => {
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 				a.click();
 			})
 		}
-	
+
 		function addClickListener(el) {
 			el.addEventListener('click', e => {
 				if (e.target.tagName === 'IMG') {
@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 		const images = Array.from(document.querySelectorAll('img')).map(item => createImg(item.src));
 
 		async function downloadAllImages(imgs) {
-			for(const img of imgs.flat()){
+			for (const img of imgs.flat()) {
 				await downloadImage(img)
 				console.log('sleep1')
 				await sleep(300)
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 		}
 
 		function injectCustomCSS() {
-			if(window.downloadImageDialogCssIsInjected) return
+			if (window.downloadImageDialogCssIsInjected) return
 			window.downloadImageDialogCssIsInjected = true
 			const customStyle = document.createElement('style');
 			customStyle.textContent = `
@@ -216,7 +216,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 	}
 
-	
+
 	// 点击1688图片下载
 	const download1688ImageMenuItemEl = document.getElementById("download1688Image");
 
@@ -251,10 +251,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 		}
 
 		// 获取背景图片
-		const getElBackgroundImageUrl = (el, imgClass = '.prop-img', nameClass='.prop-name') => {
+		const getElBackgroundImageUrl = (el, imgClass = '.prop-img', nameClass = '.prop-name') => {
 			// 获取计算样式对象
 			const imgEl = el.querySelector(imgClass)
-			if(!imgEl) return
+			if (!imgEl) return
 			const computedStyle = window.getComputedStyle(imgEl);
 			const name = el.querySelector(nameClass)?.innerText
 
@@ -274,7 +274,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 		}
 
 		const getSkuImages = () => {
-			if(!document.querySelector('.pc-sku-wrapper .sku-item-wrapper .sku-item-image')) return []
+			if (!document.querySelector('.pc-sku-wrapper .sku-item-wrapper .sku-item-image')) return []
 			const skus = document.querySelectorAll('.pc-sku-wrapper .sku-item-wrapper') || []
 
 			return Array.from(skus).map((el) => getElBackgroundImageUrl(el, '.sku-item-image', '.sku-item-name')).filter(item => item)
@@ -322,7 +322,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 			return new Promise(resolve => setTimeout(resolve, ms));
 		}
 
-		
+
 		function appendImageDialog() {
 			const images = [getBannerImages(), getSkuImages(), getSkuPropImages(), getDetailImages()]
 			let imageList = document.getElementById('imageList_1688')
@@ -341,10 +341,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 			title.addEventListener('click', async () => {
 				let count = 1
-				for(const image of images.flat()){
+				for (const image of images.flat()) {
 					await downloadImage(image)
 					console.log('sleep2')
-					if(count++ === 10){
+					if (count++ === 10) {
 						await sleep(1000)
 						count = 1
 					}
@@ -364,11 +364,42 @@ document.addEventListener("DOMContentLoaded", async () => {
 			const content = document.createElement('div')
 			content.classList.add('content')
 
+			function newBlockTitle(_images) {
+				const titleBlock = document.createElement('div')
+				const titleH2 = document.createElement('h2')
+				titleBlock.classList.add('group-title-block')
+				titleBlock.appendChild(titleH2)
+				titleH2.innerText = '图片列表,点击下载分组图片'
+				titleH2.addEventListener('click', async () => {
+					let count = 1
+					for (const image of _images.flat()) {
+						await downloadImage(image)
+						console.log('sleep2')
+						if (count++ === 10) {
+							await sleep(1000)
+							count = 1
+						}
+					}
+				})
+				return titleBlock
+			}
 
-			images.forEach(group => {
+
+
+			images.forEach(_images => {
+				if(_images.length === 0) return
+				const group = document.createElement('div')
+				group.classList.add('group')
+
+				// 标题 + 下载
+				const titleEl = newBlockTitle(_images)
+				group.appendChild(titleEl)
+
+				// 图片列表
 				const groupContent = document.createElement('div')
 				groupContent.classList.add('group-content')
-				group.forEach(image => {
+				group.appendChild(groupContent)
+				_images.forEach(image => {
 					const imgItem = document.createElement('div')
 					imgItem.classList.add('img-item')
 					const nameEl = document.createElement('span')
@@ -377,7 +408,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 					imgItem.appendChild(nameEl)
 					groupContent.appendChild(imgItem)
 				})
-				content.appendChild(groupContent)
+				content.appendChild(group)
 			})
 			addClickListener(imageList)
 
@@ -387,7 +418,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 		}
 
 		function injectCustomCSS() {
-			if(window.download1688ImageDialogCssIsInjected) return
+			if (window.download1688ImageDialogCssIsInjected) return
 			window.download1688ImageDialogCssIsInjected = true
 			const customStyle = document.createElement('style');
 			customStyle.textContent = `
@@ -428,8 +459,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 					overflow-y: auto;
 					max-height: 70vh;
 				}
-
-				#imageList_1688 .group-content {
+				#imageList_1688 .content .group .group-title-block {
+					padding: 10px;
+					background: #f5f5f5;
+				}
+				#imageList_1688 .content .group .group-title-block h2 {
+					color: #00a115;
+					cursor: pointer;
+				}
+				#imageList_1688 .content .group .group-content {
 					margin-bottom: 12px;
 					padding: 12px;
 					display: flex;
@@ -438,16 +476,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 					gap: 12px;
 				}
 
-				#imageList_1688 .group-content .img-item {
+				#imageList_1688 .content .group .group-content .img-item {
 					display: flex;
 					flex-direction: column;
 					align-items: center;
 					gap: 4px;
 					font-size: 12px;
-				}
-
-				#imageList_1688 .group-content:nth-child(2n) {
-					background: #eee;
 				}
 
 				#imageList_1688 img {
@@ -480,16 +514,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 })
 
 
-document.getElementById("saveTaobaoSearchWord").addEventListener("click", function() {
-  chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, { action: "exportTable" });
-  });
+document.getElementById("saveTaobaoSearchWord").addEventListener("click", function () {
+	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+		chrome.tabs.sendMessage(tabs[0].id, { action: "exportTable" });
+	});
 });
 
-document.getElementById("ChangeTaobaoSearchWordCondition").addEventListener("click", function() {
-  chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, { action: "ChangeTaobaoSearchWordCondition" });
-  });
+document.getElementById("ChangeTaobaoSearchWordCondition").addEventListener("click", function () {
+	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+		chrome.tabs.sendMessage(tabs[0].id, { action: "ChangeTaobaoSearchWordCondition" });
+	});
 });
 
 document.getElementById("lunWenRepeatContent").addEventListener("click", function () {
